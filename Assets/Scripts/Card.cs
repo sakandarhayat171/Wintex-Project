@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Card : MonoBehaviour
 {
     public int CardId { get; private set; }
-    private bool isFlipped = false;
+    public bool isFlipped { get; private set; }
     private Button button;
     private Image image;
     public Sprite frontImage;
@@ -37,7 +37,7 @@ public class Card : MonoBehaviour
         }
     }
 
-    private IEnumerator FlipCard()
+    public IEnumerator FlipCard()
     {
         isFlipped = true;
         GameManager.Instance?.AudioManager.PlayFlipSound();

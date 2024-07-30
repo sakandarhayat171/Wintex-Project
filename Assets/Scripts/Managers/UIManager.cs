@@ -20,7 +20,13 @@ public class UIManager : MonoBehaviour
 
     [Header("Gameplay Panel"), Space]
     public GameObject gameplayPanel;
-    public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI gameplayScore;
+
+    [Header("Complete Panel"), Space]
+    public GameObject completePanel;
+    public TextMeshProUGUI completeScore;
+    public Button replayButton;
+    public Button menuButton;
 
     private void Start()
     {
@@ -30,7 +36,12 @@ public class UIManager : MonoBehaviour
 
         startButton?.onClick.AddListener(OnStartButtonClicked);
         backButton?.onClick.AddListener(OnBackButtonClicked);
+
+        replayButton?.onClick.AddListener(OnReplayButtonClicked);
+        menuButton?.onClick.AddListener(OnMenuButtonClicked);
     }
+
+    #region Buttons
 
     private void OnPlayButtonClicked()
     {
@@ -70,6 +81,23 @@ public class UIManager : MonoBehaviour
         menuPanel?.SetActive(true);
     }
 
+    private void OnReplayButtonClicked()
+    {
+        GameManager.Instance?.AudioManager?.PlayClickSound();
+        completePanel?.SetActive(false);
+        gameplayPanel?.SetActive(true);
+        GameManager.Instance?.StartGame(GameManager.Instance.rows, GameManager.Instance.cols);
+    }
+
+    private void OnMenuButtonClicked()
+    {
+        GameManager.Instance?.AudioManager?.PlayClickSound();
+        completePanel?.SetActive(false);
+        menuPanel?.SetActive(true);
+    }
+
+    #endregion Buttons
+
     public void ShowLayoutSelection()
     {
         layoutSelectionPanel?.SetActive(true);
@@ -78,12 +106,20 @@ public class UIManager : MonoBehaviour
 
     public void ShowMenu()
     {
-        menuPanel.SetActive(true);
+        menuPanel?.SetActive(true);
         gameplayPanel?.SetActive(false);
+    }
+
+    public void ShowCompletePanel()
+    {
+        completePanel?.SetActive(true);
+        gameplayPanel?.SetActive(false);
+
+        completeScore?.SetText($"Score : {GameManager.Instance?.GetScore()}");
     }
 
     public void UpdateScoreText()
     {
-        scoreText?.SetText($"Score : {GameManager.Instance?.GetScore()}");
+        gameplayScore?.SetText($"Score : {GameManager.Instance?.GetScore()}");
     }
 }

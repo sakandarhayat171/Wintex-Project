@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,9 +18,11 @@ public class GameManager : MonoBehaviour
     private List<Card> cards = new List<Card>();
     private Card previousCard = null;
     private Card currentCard = null;
-    private int score = 0;
     private GridLayoutGroup gridLayoutGroup;
     private RectTransform cardParentRect;
+    private int score = 0;
+    public int rows { get; private set; }
+    public int cols { get; private set; }
 
     private void Awake()
     {
@@ -48,6 +52,9 @@ public class GameManager : MonoBehaviour
     public void StartGame(int rows, int cols)
     {
         score = 0;
+        this.rows = rows;
+        this.cols = cols;
+
         ComboManager?.ResetCombo();
         SetCardLayout(rows, cols);
     }
@@ -148,6 +155,8 @@ public class GameManager : MonoBehaviour
             ComboManager?.IncrementCombo();
             UIManager?.UpdateScoreText();
             AudioManager?.PlayMatchSound();
+
+            Invoke(nameof(CheckComplete), 1f);
         }
         else
         {
@@ -165,5 +174,78 @@ public class GameManager : MonoBehaviour
     public int GetScore()
     {
         return score;
+    }
+
+    private void CheckComplete()
+    {
+        List<Card> tempCards = cards.Where(card => !card.isFlipped).ToList();
+
+        if(tempCards.Count == 0 || tempCards.Count == 1)
+        {
+            UIManager?.ShowCompletePanel();
+        }
+    }
+
+    public void SaveProgress()
+    {
+        SaveData saveData = new SaveData();
+        saveData.score = score;
+        saveData.rows = rows;
+        saveData.cols = cols;
+        saveData.cardStates = new List<int>();
+        saveData.cardIDs = new List<int>();
+
+        foreach (var card in cards)
+        {
+            saveData.cardStates.Add(card.isFlipped ? 1 : 0);
+            saveData.cardIDs.Add(card.CardId);
+        }
+
+        string json = JsonUtility.ToJson(saveData);
+        File.WriteAllText(Application.persistentDataPath + "/Wintex.json", json);
+    }
+
+    public void LoadProgress()
+    {
+        string path = Application.persistentDataPath + "/Wintex.json";
+        if (File.Exists(path))
+        {
+            try
+            {
+                string json = File.ReadAllText(path);
+                SaveData saveData = JsonUtility.FromJson<SaveData>(json);
+
+                if (saveData != null)
+                {
+                    score = saveData.score;
+                    SetCardLayout(saveData.rows, saveData.cols);
+
+                    for (int i = 0; i < cards.Count; i++)
+                    {
+                        cards[i].Initialize(saveData.cardIDs[i]);
+                        if (saveData.cardStates[i] == 1)
+                        {
+                            StartCoroutine(cards[i].FlipCard());
+                        }
+                        else
+                        {
+                            cards[i].ResetCard();
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Failed to load game: Save data is corrupted.");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Failed to load game: " + e.Message);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Save file not found.");
+        }
     }
 }
