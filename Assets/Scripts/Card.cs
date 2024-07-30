@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ public class Card : MonoBehaviour
     private Image image;
     public Sprite frontImage;
     public Sprite backImage;
+    public float flipDuration = 0.5f;
 
     private void Awake()
     {
@@ -29,22 +31,35 @@ public class Card : MonoBehaviour
     {
         if (!isFlipped)
         {
-            Flip();
+            StartCoroutine(FlipCard());
             GameManager.Instance?.CardSelected(this);
         }
     }
 
-    public void Flip()
+    private IEnumerator FlipCard()
     {
-        isFlipped = !isFlipped;
-        image.sprite = isFlipped ? frontImage : backImage;
-        GameManager.Instance?.AudioManager?.PlayFlipSound();
+        isFlipped = true;
+        GameManager.Instance?.AudioManager.PlayFlipSound();
+
+        float time = 0f;
+        while (time < flipDuration)
+        {
+            float t = time / flipDuration;
+            float angle = Mathf.Lerp(180f, 360f, t);
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+            time += Time.deltaTime;
+            if(time >= flipDuration / 2)
+                image.sprite = isFlipped ? frontImage : backImage;
+
+            yield return null;
+        }
     }
 
     public void Reset()
     {
         isFlipped = false;
         image.sprite = backImage;
+        transform.rotation = Quaternion.Euler(0f, 0f, 180f);
     }
 
     public void Match()

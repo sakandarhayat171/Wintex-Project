@@ -46,6 +46,8 @@ public class GameManager : MonoBehaviour
     {
         ClearPreviousCards();
         CreateCardLayout(rows, cols);
+
+        UIManager?.UpdateScoreText();
     }
 
     private void ClearPreviousCards()
