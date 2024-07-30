@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
+    public AudioClip clickSound;
     public AudioClip flipSound;
     public AudioClip matchSound;
     public AudioClip mismatchSound;
@@ -12,6 +13,11 @@ public class AudioManager : MonoBehaviour
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
+    }
+
+    public void PlayClickSound()
+    {
+        audioSource?.PlayOneShot(clickSound);
     }
 
     public void PlayFlipSound()

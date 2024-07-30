@@ -24,7 +24,8 @@ public class Card : MonoBehaviour
     {
         CardId = id;
         frontImage = Resources.Load<Sprite>($"Cards/{CardId}");
-        image.sprite = backImage;
+        image.sprite = frontImage;
+        button.interactable = false;
     }
 
     private void OnCardClicked()
@@ -53,6 +54,12 @@ public class Card : MonoBehaviour
 
             yield return null;
         }
+    }
+
+    public void ResetCard()
+    {
+        button.interactable = true;
+        Reset();
     }
 
     public void Reset()

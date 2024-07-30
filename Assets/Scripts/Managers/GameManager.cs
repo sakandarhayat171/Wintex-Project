@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public AudioManager AudioManager { get; protected set; }
     public UIManager UIManager { get; protected set; }
+    public ComboManager ComboManager { get; protected set; }
 
     public GameObject cardPrefab;
     public Transform cardParent;
@@ -31,18 +32,27 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
     private void Start()
     {
         AudioManager = FindObjectOfType<AudioManager>();
         UIManager = FindObjectOfType<UIManager>();
+        ComboManager = FindObjectOfType<ComboManager>();
 
         gridLayoutGroup = cardParent.GetComponent<GridLayoutGroup>();
         cardParentRect = cardParent.GetComponent<RectTransform>();
 
-        UIManager.ShowLayoutSelection();
+        UIManager.ShowMenu();
     }
 
-    public void SetCardLayout(int rows, int cols)
+    public void StartGame(int rows, int cols)
+    {
+        score = 0;
+        ComboManager?.ResetCombo();
+        SetCardLayout(rows, cols);
+    }
+
+    private void SetCardLayout(int rows, int cols)
     {
         ClearPreviousCards();
         CreateCardLayout(rows, cols);
@@ -100,6 +110,16 @@ public class GameManager : MonoBehaviour
         {
             cards[i].transform.SetSiblingIndex(i);
         }
+
+        Invoke(nameof(FlipToBack), 1f);
+    }
+
+    private void FlipToBack()
+    {
+        foreach (Card card in cards)
+        {
+            card.ResetCard();
+        }
     }
 
     public void CardSelected(Card card)
@@ -117,14 +137,15 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator CheckMatch()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.85f);
 
         if (previousCard.CardId == currentCard.CardId)
         {
             // Match
             previousCard.Match();
             currentCard.Match();
-            score++;
+            score += 10 * ComboManager.GetComboMultiplier();
+            ComboManager?.IncrementCombo();
             UIManager?.UpdateScoreText();
             AudioManager?.PlayMatchSound();
         }
@@ -133,6 +154,7 @@ public class GameManager : MonoBehaviour
             // Mismatch
             previousCard.Reset();
             currentCard.Reset();
+            ComboManager?.ResetCombo();
             AudioManager?.PlayMismatchSound();
         }
 
