@@ -8,7 +8,6 @@ public class Card : MonoBehaviour
     private bool isFlipped = false;
     private Button button;
     private Image image;
-    private TextMeshProUGUI cardText;
     public Sprite frontImage;
     public Sprite backImage;
 
@@ -16,14 +15,12 @@ public class Card : MonoBehaviour
     {
         button = GetComponent<Button>();
         image = GetComponent<Image>();
-        cardText = GetComponentInChildren<TextMeshProUGUI>();
         button.onClick.AddListener(OnCardClicked);
     }
 
     public void Initialize(int id)
     {
         CardId = id;
-        cardText.SetText(CardId.ToString());
         frontImage = Resources.Load<Sprite>($"Cards/{CardId}");
         image.sprite = backImage;
     }

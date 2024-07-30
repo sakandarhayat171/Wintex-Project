@@ -7,15 +7,17 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public AudioManager AudioManager { get; protected set; }
+    public UIManager UIManager { get; protected set; }
 
     public GameObject cardPrefab;
-    public GridLayoutGroup cardParent;
-    public int rows = 2;
-    public int cols = 2;
+    public Transform cardParent;
+
     private List<Card> cards = new List<Card>();
     private Card previousCard = null;
     private Card currentCard = null;
     private int score = 0;
+    private GridLayoutGroup gridLayoutGroup;
+    private RectTransform cardParentRect;
 
     private void Awake()
     {
@@ -29,50 +31,72 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
     private void Start()
     {
         AudioManager = FindObjectOfType<AudioManager>();
-        InitializeGame();
+        UIManager = FindObjectOfType<UIManager>();
+
+        gridLayoutGroup = cardParent.GetComponent<GridLayoutGroup>();
+        cardParentRect = cardParent.GetComponent<RectTransform>();
+
+        UIManager.ShowLayoutSelection();
     }
 
-    private void InitializeGame()
+    public void SetCardLayout(int rows, int cols)
     {
-        if (cardParent.constraint.Equals(GridLayoutGroup.Constraint.FixedRowCount))
-        {
-            cardParent.constraintCount = rows;
-        }
-        else if (cardParent.constraint.Equals(GridLayoutGroup.Constraint.FixedColumnCount))
-        {
-            cardParent.constraintCount = cols;
-        }
-
-        // Initialize card layout and instantiate cards
+        ClearPreviousCards();
         CreateCardLayout(rows, cols);
-        ShuffleCards();
+    }
+
+    private void ClearPreviousCards()
+    {
+        foreach (Transform child in cardParent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        cards.Clear();
     }
 
     private void CreateCardLayout(int rows, int cols)
     {
-        // Example of creating and positioning cards
-        for (int i = 0; i < rows * cols; i++)
+        float containerWidth = cardParentRect.rect.width;
+        float containerHeight = cardParentRect.rect.height;
+
+        float maxCardWidth = containerWidth / cols;
+        float maxCardHeight = containerHeight / rows;
+        float cardSize = Mathf.Min(maxCardWidth, maxCardHeight);
+
+        gridLayoutGroup.cellSize = new Vector2(cardSize, cardSize);
+        gridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        gridLayoutGroup.constraintCount = cols;
+
+        for (int row = 0; row < rows; row++)
         {
-            GameObject cardObj = Instantiate(cardPrefab, cardParent.transform);
-            Card card = cardObj.GetComponent<Card>();
-            cards.Add(card);
-            card.Initialize(i / 2); // Assume pairs
+            for (int col = 0; col < cols; col++)
+            {
+                GameObject cardObj = Instantiate(cardPrefab, cardParent);
+                Card card = cardObj.GetComponent<Card>();
+                cards.Add(card);
+                card.Initialize((row * cols + col) / 2); // pairs
+            }
         }
+
+        ShuffleCards();
     }
 
     private void ShuffleCards()
     {
-        // Shuffle the cards
-        for (int i = 0; i < cards.Count; i++)
+        for (int i = cards.Count - 1; i > 0; i--)
         {
+            int randomIndex = Random.Range(0, i + 1);
             Card temp = cards[i];
-            int randomIndex = Random.Range(i, cards.Count);
             cards[i] = cards[randomIndex];
             cards[randomIndex] = temp;
+        }
+
+        for (int i = 0; i < cards.Count; i++)
+        {
+            cards[i].transform.SetSiblingIndex(i);
         }
     }
 
@@ -99,6 +123,7 @@ public class GameManager : MonoBehaviour
             previousCard.Match();
             currentCard.Match();
             score++;
+            UIManager?.UpdateScoreText();
             AudioManager?.PlayMatchSound();
         }
         else
