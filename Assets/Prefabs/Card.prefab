@@ -271,4 +271,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   frontImage: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
-  backImage: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  backImage: {fileID: 21300000, guid: 6e3052e1ff6204e4da2f379c0875c68b, type: 3}

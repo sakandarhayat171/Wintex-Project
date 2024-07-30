@@ -53,6 +53,6 @@ public class Card : MonoBehaviour
     public void Match()
     {
         // Logic for matching cards
-        gameObject.SetActive(false);
+        button.interactable = false;
     }
 }

@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     private List<Card> cards = new List<Card>();
     private Card previousCard = null;
     private Card currentCard = null;
+    private int score = 0;
 
     private void Awake()
     {
@@ -97,6 +98,7 @@ public class GameManager : MonoBehaviour
             // Match
             previousCard.Match();
             currentCard.Match();
+            score++;
             AudioManager?.PlayMatchSound();
         }
         else
@@ -109,5 +111,10 @@ public class GameManager : MonoBehaviour
 
         previousCard = null;
         currentCard = null;
+    }
+
+    public int GetScore()
+    {
+        return score;
     }
 }
